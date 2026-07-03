@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/realtimehub_test
+    username: realtimehub
+    password: realtimehub
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+app:
+  jwt:
+    secret: test-secret-key-for-integration-tests-minimum-256-bits-required
+
+logging:
+  level:
+    root: WARN
+    com.realtimehub: INFO
