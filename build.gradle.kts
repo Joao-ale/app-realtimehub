@@ -1,41 +1,82 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
-    alias(libs.plugins.kotlin.jvm) apply false
-    alias(libs.plugins.kotlin.spring) apply false
-    alias(libs.plugins.kotlin.jpa) apply false
-    alias(libs.plugins.spring.boot) apply false
-    alias(libs.plugins.spring.dependency.management) apply false
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
 }
 
-allprojects {
-    group = "com.realtimehub"
-    version = "0.1.0-SNAPSHOT"
+group = "com.realtimehub"
+version = System.getenv("IMAGE_TAG") ?: "0.0.1-SNAPSHOT"
 
-    repositories {
-        mavenCentral()
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
-subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "jacoco")
+repositories {
+    mavenCentral()
+}
 
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "21"
-        }
-    }
+dependencies {
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlin.reflect)
 
-    tasks.withType<Test> {
-        useJUnitPlatform()
-        finalizedBy(tasks.named("jacocoTestReport"))
-    }
+    implementation(libs.jackson.module.kotlin)
 
-    tasks.named<JacocoReport>("jacocoTestReport") {
-        dependsOn(tasks.named("test"))
-        reports {
-            xml.required.set(true)
-            html.required.set(true)
-        }
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.websocket)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.spring.boot.starter.validation)
+    implementation(libs.spring.boot.starter.data.jpa)
+    implementation(libs.spring.boot.starter.data.redis)
+
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.micrometer.prometheus)
+    implementation(libs.springdoc.openapi)
+
+    implementation(libs.postgresql)
+
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.postgresql)
+
+    implementation(libs.jjwt.api)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
+
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.spring.security.test)
+
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.redis)
+
+    testImplementation(libs.mockk)
+    testImplementation(libs.springmockk)
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        freeCompilerArgs.add("-Xjsr305=strict")
     }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+
+    testLogging {
+        events("passed", "failed", "skipped")
+    }
+}
+
+tasks.named<BootJar>("bootJar") {
+    archiveFileName.set("realtimehub-api.jar")
+}
+
+tasks.named<Jar>("jar") {
+    enabled = false
 }

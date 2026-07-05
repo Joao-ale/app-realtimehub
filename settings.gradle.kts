@@ -1,3 +1,2 @@
-rootProject.name = "realtimehub"
-
-include("domain", "application", "infrastructure", "api")
+include("Realtimehub")
+project(":Realtimehub").projectDir.mkdirs()

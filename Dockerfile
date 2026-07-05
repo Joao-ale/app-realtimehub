@@ -1,14 +1,10 @@
 # Build stage
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM eclipse-temurin:24-jdk-alpine AS builder
 WORKDIR /app
 
 COPY gradle gradle
 COPY gradlew .
 COPY build.gradle.kts settings.gradle.kts gradle.properties ./
-COPY domain domain
-COPY application application
-COPY infrastructure infrastructure
-COPY api api
 
 RUN chmod +x gradlew && ./gradlew :api:bootJar --no-daemon -x test
 
