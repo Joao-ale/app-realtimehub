@@ -1,2 +1,1 @@
-include("Realtimehub")
-project(":Realtimehub").projectDir.mkdirs()
+rootProject.name = "realtimehub"
