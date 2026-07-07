@@ -2,46 +2,74 @@ package com.realtimehub.persistence.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import java.time.Instant
 import java.time.LocalDateTime
-import java.util.UUID
 
+/**
+ * JPA Entity for User persistence.
+ * Maps to the 'users' table in the database.
+ */
 @Entity
 @Table(name = "users")
-class UserEntity(
+data class UserEntity(
     @Id
-    @Column(columnDefinition = "uuid")
-    var id: String? = null,
+    @Column(name = "id", length = 36)
+    val id: String = "",
 
-    @Column(nullable = false, length = 100)
-    var name: String = "",
+    @Column(name = "email", length = 255, nullable = false, unique = true)
+    val email: String = "",
 
-    @Column(nullable = false, unique = true)
-    var email: String = "",
+    @Column(name = "username", length = 100, nullable = false, unique = true)
+    val username: String = "",
 
-    @Column(name = "password_hash", nullable = false)
-    var passwordHash: String = "",
+    @Column(name = "password_hash", length = 255, nullable = false)
+    val passwordHash: String = "",
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    var status: UserStatusEntity = UserStatusEntity.OFFLINE,
+    @Column(name = "full_name", length = 255, nullable = true)
+    val fullName: String? = null,
 
-    @Column(name = "last_seen_at")
-    var lastSeenAt: LocalDateTime? = null,
+    @Column(name = "profile_photo_url", length = 1024, nullable = true)
+    val profilePhotoUrl: String? = null,
+
+    @Column(name = "bio", columnDefinition = "TEXT", nullable = true)
+    val bio: String? = null,
+
+    @Column(name = "status", length = 20, nullable = false)
+    val status: String = "OFFLINE",
+
+    @Column(name = "last_seen", nullable = false)
+    val lastSeen: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "is_active", nullable = false)
+    val isActive: Boolean = true,
 
     @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
-)
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
 
-enum class UserStatusEntity {
-    ONLINE,
-    OFFLINE,
-    AWAY,
+    @Column(name = "created_by", length = 36, nullable = true)
+    val createdBy: String? = null,
+
+    @Column(name = "updated_by", length = 36, nullable = true)
+    val updatedBy: String? = null,
+) {
+    constructor() : this(
+        id = "",
+        email = "",
+        username = "",
+        passwordHash = "",
+        fullName = null,
+        profilePhotoUrl = null,
+        bio = null,
+        status = "OFFLINE",
+        lastSeen = LocalDateTime.now(),
+        isActive = true,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+        createdBy = null,
+        updatedBy = null,
+    )
 }

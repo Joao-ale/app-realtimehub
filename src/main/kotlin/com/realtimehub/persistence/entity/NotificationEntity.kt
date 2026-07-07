@@ -2,59 +2,62 @@ package com.realtimehub.persistence.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import java.time.Instant
-import java.util.UUID
+import java.time.LocalDateTime
 
+/**
+ * JPA Entity for Notification persistence.
+ * Maps to the 'notifications' table in the database.
+ */
 @Entity
 @Table(name = "notifications")
-class NotificationEntity(
-	@Id
-    @Column(columnDefinition = "uuid")
-    var id: UUID? = null,
+data class NotificationEntity(
+    @Id
+    @Column(name = "id", length = 36)
+    val id: String = "",
 
-	@Column(name = "user_id", nullable = false, columnDefinition = "uuid")
-    var userId: UUID = UUID.randomUUID(),
+    @Column(name = "user_id", length = 36, nullable = false)
+    val userId: String = "",
 
-	@Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    var type: NotificationTypeEntity = NotificationTypeEntity.NEW_MESSAGE,
+    @Column(name = "title", length = 255, nullable = false)
+    val title: String = "",
 
-	@Column(nullable = false)
-    var title: String = "",
+    @Column(name = "description", columnDefinition = "TEXT", nullable = true)
+    val description: String? = null,
 
-	@Column(nullable = false, columnDefinition = "TEXT")
-    var body: String = "",
+    @Column(name = "notification_type", length = 50, nullable = false)
+    val notificationType: String = "",
 
-	@Column(name = "reference_id", columnDefinition = "uuid")
-    var referenceId: UUID? = null,
+    @Column(name = "related_user_id", length = 36, nullable = true)
+    val relatedUserId: String? = null,
 
-	@Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    var status: NotificationStatusEntity = NotificationStatusEntity.PENDING,
+    @Column(name = "related_message_id", length = 36, nullable = true)
+    val relatedMessageId: String? = null,
 
-	@Column(name = "created_at", nullable = false)
-    var createdAt: Instant = Instant.now(),
+    @Column(name = "related_chat_id", length = 36, nullable = true)
+    val relatedChatId: String? = null,
 
-	@Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant = Instant.now(),
+    @Column(name = "is_read", nullable = false)
+    val isRead: Boolean = false,
 
-	@Column(name = "read_at")
-    var readAt: Instant? = null,
-)
+    @Column(name = "read_at", nullable = true)
+    val readAt: LocalDateTime? = null,
 
-enum class NotificationTypeEntity {
-    NEW_MESSAGE,
-    MENTION,
-    CHAT_INVITE,
-    SYSTEM,
-}
-
-enum class NotificationStatusEntity {
-    PENDING,
-    DELIVERED,
-    READ,
+    @Column(name = "created_at", nullable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+) {
+    constructor() : this(
+        id = "",
+        userId = "",
+        title = "",
+        description = null,
+        notificationType = "",
+        relatedUserId = null,
+        relatedMessageId = null,
+        relatedChatId = null,
+        isRead = false,
+        readAt = null,
+        createdAt = LocalDateTime.now(),
+    )
 }

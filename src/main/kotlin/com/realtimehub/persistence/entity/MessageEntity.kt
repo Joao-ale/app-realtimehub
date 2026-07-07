@@ -1,97 +1,79 @@
 package com.realtimehub.persistence.entity
 
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
 import jakarta.persistence.Id
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import java.time.Instant
-import java.util.UUID
+import java.time.LocalDateTime
 
+/**
+ * JPA Entity for Message persistence.
+ * Maps to the 'messages' table in the database.
+ */
 @Entity
 @Table(name = "messages")
-class MessageEntity(
-	@Id
-    @Column(columnDefinition = "uuid")
-    var id: UUID? = null,
+data class MessageEntity(
+    @Id
+    @Column(name = "id", length = 36)
+    val id: String = "",
 
-	@Column(name = "chat_id", nullable = false, columnDefinition = "uuid")
-    var chatId: UUID = UUID.randomUUID(),
+    @Column(name = "chat_id", length = 36, nullable = false)
+    val chatId: String = "",
 
-	@Column(name = "sender_id", nullable = false, columnDefinition = "uuid")
-    var senderId: UUID = UUID.randomUUID(),
+    @Column(name = "sender_id", length = 36, nullable = false)
+    val senderId: String = "",
 
-	@Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    var type: MessageTypeEntity = MessageTypeEntity.TEXT,
+    @Column(name = "content", columnDefinition = "TEXT", nullable = true)
+    val content: String? = null,
 
-	@Column(columnDefinition = "TEXT")
-    var content: String? = null,
+    @Column(name = "message_type", length = 20, nullable = false)
+    @Enumerated(EnumType.STRING)
+    val messageType: MessageTypeEnum = MessageTypeEnum.TEXT,
 
-	@Column(name = "media_url")
-    var mediaUrl: String? = null,
+    @Column(name = "is_edited", nullable = false)
+    val isEdited: Boolean = false,
 
-	@Column(name = "reply_to_id", columnDefinition = "uuid")
-    var replyToId: UUID? = null,
+    @Column(name = "edited_at", nullable = true)
+    val editedAt: LocalDateTime? = null,
 
-	@Column(name = "forwarded_from_id", columnDefinition = "uuid")
-    var forwardedFromId: UUID? = null,
+    @Column(name = "is_deleted", nullable = false)
+    val isDeleted: Boolean = false,
 
-	@Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    var status: MessageStatusEntity = MessageStatusEntity.SENT,
+    @Column(name = "deleted_at", nullable = true)
+    val deletedAt: LocalDateTime? = null,
 
-	@Column(name = "created_at", nullable = false)
-    var createdAt: Instant = Instant.now(),
+    @Column(name = "reply_to_id", length = 36, nullable = true)
+    val replyToId: String? = null,
 
-	@Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant = Instant.now(),
+    @Column(name = "created_at", nullable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 
-	@Column(name = "edited_at")
-    var editedAt: Instant? = null,
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
+) {
+    constructor() : this(
+        id = "",
+        chatId = "",
+        senderId = "",
+        content = null,
+        messageType = MessageTypeEnum.TEXT,
+        isEdited = false,
+        editedAt = null,
+        isDeleted = false,
+        deletedAt = null,
+        replyToId = null,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+    )
+}
 
-	@Column(name = "deleted_at")
-    var deletedAt: Instant? = null,
-
-	@OneToMany(mappedBy = "messageId", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
-    var reactions: MutableList<MessageReactionEntity> = mutableListOf(),
-)
-
-enum class MessageTypeEntity {
+enum class MessageTypeEnum {
     TEXT,
     IMAGE,
     FILE,
     AUDIO,
-    SYSTEM,
+    VIDEO,
+    EMOJI,
 }
-
-enum class MessageStatusEntity {
-    SENT,
-    DELIVERED,
-    READ,
-    DELETED,
-}
-
-@Entity
-@Table(name = "message_reactions")
-class MessageReactionEntity(
-    @Id
-    @Column(columnDefinition = "uuid")
-    var id: UUID? = null,
-
-    @Column(name = "message_id", nullable = false, columnDefinition = "uuid")
-    var messageId: UUID = UUID.randomUUID(),
-
-    @Column(name = "user_id", nullable = false, columnDefinition = "uuid")
-    var userId: UUID = UUID.randomUUID(),
-
-    @Column(nullable = false, length = 32)
-    var emoji: String = "",
-
-    @Column(name = "created_at", nullable = false)
-    var createdAt: Instant = Instant.now(),
-)
