@@ -1,7 +1,5 @@
 package com.realtimehub.shared.domain
 
-import java.time.LocalDateTime
-
 /**
  * Base class for all aggregate roots.
  * An aggregate root is the main entity that manages the consistency of a set of entities and value objects.

@@ -1,12 +1,12 @@
 package com.realtimehub.domain.port
 
-import com.realtimehub.domain.model.Chat
-import com.realtimehub.domain.model.ChatType
-import java.util.UUID
+
+import com.realtimehub.domain.chat.entity.Chat
 
 interface ChatRepository {
     fun save(chat: Chat): Chat
-    fun findById(id: UUID): Chat?
-    fun findByUserId(userId: UUID): List<Chat>
-    fun findPrivateChatBetween(userId1: UUID, userId2: UUID): Chat?
+    fun findById(id: String): Chat?
+    fun findByUserId(userId: String): List<Chat>
+
+    fun findPrivateChatBetween(userId1: String, userId2: String): Chat?
 }

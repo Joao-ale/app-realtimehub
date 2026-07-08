@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
-/**
- * Standard API error response format.
- */
+
 @Schema(description = "Standard error response")
 data class ApiErrorResponse(
     @field:Schema(description = "HTTP status code")

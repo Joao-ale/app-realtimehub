@@ -1,27 +1,20 @@
 package com.realtimehub.application.service
 
 import com.realtimehub.domain.message.entity.Message
-import com.realtimehub.domain.message.repository.MessageRepository
-import com.realtimehub.domain.message.valueobject.MessageType
+import com.realtimehub.domain.message.entity.MessageType
+import com.realtimehub.domain.port.MessageRepository
 import com.realtimehub.infrastructure.event.DomainEventPublisher
 import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * Application service for message operations.
- * Orchestrates domain logic and coordinates with repositories.
- */
 @Service
 class MessageApplicationService(
     private val messageRepository: MessageRepository,
     private val domainEventPublisher: DomainEventPublisher,
 ) {
 
-    /**
-     * Send a new message.
-     */
     @Transactional
     suspend fun sendMessage(
         chatId: String,
@@ -33,13 +26,13 @@ class MessageApplicationService(
         return try {
             val type = try {
                 when (messageType.uppercase()) {
-                    "TEXT" -> MessageType.text()
-                    "IMAGE" -> MessageType.image()
-                    "FILE" -> MessageType.file()
-                    "AUDIO" -> MessageType.audio()
-                    "VIDEO" -> MessageType.video()
-                    "EMOJI" -> MessageType.emoji()
-                    else -> MessageType.text()
+                    "TEXT" -> MessageType.TEXT
+                    "IMAGE" -> MessageType.IMAGE
+                    "FILE" -> MessageType.FILE
+                    "AUDIO" -> MessageType.AUDIO
+                    "VIDEO" -> MessageType.VIDEO
+                    "EMOJI" -> MessageType.EMOJI
+                    else -> MessageType.TEXT
                 }
             } catch (e: Exception) {
                 MessageType.text()

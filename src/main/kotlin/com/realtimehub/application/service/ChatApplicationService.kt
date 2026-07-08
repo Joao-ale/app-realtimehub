@@ -1,46 +1,40 @@
 package com.realtimehub.application.service
 
 import com.realtimehub.domain.chat.entity.Chat
-import com.realtimehub.domain.chat.repository.ChatRepository
+import com.realtimehub.domain.chat.entity.ChatMapper
+import com.realtimehub.domain.port.ChatRepository
 import com.realtimehub.infrastructure.event.DomainEventPublisher
+import com.realtimehub.interfaces.dto.chat.ChatRequestDTO
+import com.realtimehub.interfaces.dto.chat.ChatResponseDTO
 import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
+import com.realtimehub.shared.utils.IdUtils.generateId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * Application service for chat operations.
- * Orchestrates domain logic and coordinates with repositories.
- */
 @Service
 class ChatApplicationService(
     private val chatRepository: ChatRepository,
     private val domainEventPublisher: DomainEventPublisher,
+    private val chatMapper: ChatMapper
 ) {
-
-    /**
-     * Create a new group chat.
-     */
     @Transactional
     suspend fun createGroupChat(
-        name: String,
-        description: String? = null,
-        creatorId: String,
-        groupPhotoUrl: String? = null,
-    ): Result<Chat> {
+        request: ChatRequestDTO
+    ): Result<ChatResponseDTO> {
         return try {
             val chat = Chat.createGroup(
-                name = name,
-                description = description,
-                creatorId = creatorId,
-                groupPhotoUrl = groupPhotoUrl,
+                name = request.name ?: throw IllegalArgumentException("Chat name is required for group chat"),
+                description = request.description,
+                creatorId = request.creatorId ?: throw IllegalArgumentException("Creator ID is required for group chat"),
+                groupPhotoUrl = request.groupPhotoUrl,
             )
 
             val savedChat = chatRepository.save(chat)
             domainEventPublisher.publishAll(savedChat.getDomainEvents())
             savedChat.clearDomainEvents()
 
-            Result.Success(savedChat)
+            Result.Success(chatMapper.toResponseDTO(savedChat))
         } catch (e: IllegalArgumentException) {
             Result.Failure(
                 DomainError.ValidationError(
@@ -56,18 +50,16 @@ class ChatApplicationService(
         }
     }
 
-    /**
-     * Create a new private chat.
-     */
     @Transactional
-    suspend fun createPrivateChat(creatorId: String): Result<Chat> {
+    suspend fun createPrivateChat(request: ChatRequestDTO): Result<ChatResponseDTO> {
         return try {
+            val creatorId = request.creatorId ?: throw IllegalArgumentException("Creator ID is required for private chat")
             val chat = Chat.createPrivate(creatorId = creatorId)
             val savedChat = chatRepository.save(chat)
             domainEventPublisher.publishAll(savedChat.getDomainEvents())
             savedChat.clearDomainEvents()
 
-            Result.Success(savedChat)
+            Result.Success(chatMapper.toResponseDTO(savedChat))
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(
@@ -77,11 +69,8 @@ class ChatApplicationService(
         }
     }
 
-    /**
-     * Get chat by ID.
-     */
     @Transactional(readOnly = true)
-    suspend fun getChatById(chatId: String): Result<Chat> {
+    suspend fun getChatById(chatId: String): Result<ChatResponseDTO> {
         return try {
             val chat = chatRepository.findById(chatId)
                 ?: return Result.Failure(
@@ -89,7 +78,7 @@ class ChatApplicationService(
                         message = "Chat not found: $chatId",
                     ),
                 )
-            Result.Success(chat)
+            Result.Success(chatMapper.toResponseDTO(chat))
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(
@@ -99,13 +88,11 @@ class ChatApplicationService(
         }
     }
 
-    /**
-     * Get all chats created by user.
-     */
     @Transactional(readOnly = true)
-    suspend fun getUserChats(userId: String): Result<List<Chat>> {
+    suspend fun getUserChats(userId: String): Result<List<ChatResponseDTO>> {
         return try {
-            val chats = chatRepository.findAllByCreatorId(userId)
+            val chats = chatRepository.findByUserId(userId)
+                .map { chatMapper.toResponseDTO(it) }
             Result.Success(chats)
         } catch (e: Exception) {
             Result.Failure(
@@ -116,16 +103,13 @@ class ChatApplicationService(
         }
     }
 
-    /**
-     * Update group chat info.
-     */
     @Transactional
     suspend fun updateGroupChat(
         chatId: String,
         name: String? = null,
         description: String? = null,
         groupPhotoUrl: String? = null,
-    ): Result<Chat> {
+    ): Result<ChatResponseDTO> {
         return try {
             val chat = chatRepository.findById(chatId)
                 ?: return Result.Failure(
@@ -144,7 +128,7 @@ class ChatApplicationService(
             domainEventPublisher.publishAll(savedChat.getDomainEvents())
             savedChat.clearDomainEvents()
 
-            Result.Success(savedChat)
+            Result.Success(chatMapper.toResponseDTO(savedChat))
         } catch (e: IllegalArgumentException) {
             Result.Failure(
                 DomainError.ValidationError(

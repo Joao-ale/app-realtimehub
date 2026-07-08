@@ -1,19 +1,12 @@
 package com.realtimehub.domain.chat.entity
 
 import com.realtimehub.domain.chat.event.ChatCreatedEvent
-import com.realtimehub.domain.chat.valueobject.ChatId
-import com.realtimehub.domain.chat.valueobject.ChatType
-import com.realtimehub.domain.user.valueobject.UserId
+import com.realtimehub.interfaces.dto.chat.ChatResponseDTO
 import com.realtimehub.shared.domain.AggregateRoot
+import com.realtimehub.shared.utils.DateTimeUtils
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.UUID
 
-/**
- * Chat aggregate root.
- * Represents a conversation between users (private or group).
- * Uses LocalDateTime with Brasilia timezone (UTC-3).
- */
 class Chat(
     override val id: String,
     val name: String?,
@@ -27,20 +20,16 @@ class Chat(
 ) : AggregateRoot<String>(id) {
 
     companion object {
-        private val BRASIL_ZONE = ZoneId.of("America/Sao_Paulo")
 
-        /**
-         * Factory method to create a new private chat.
-         */
         fun createPrivate(creatorId: String): Chat {
-            val now = LocalDateTime.now(BRASIL_ZONE)
+            val now = DateTimeUtils.now()
             val chatId = UUID.randomUUID().toString()
 
             val chat = Chat(
                 id = chatId,
                 name = null,
                 description = null,
-                type = ChatType.private(),
+                type = ChatType.PRIVATE,
                 creatorId = creatorId,
                 groupPhotoUrl = null,
                 isActive = true,
@@ -52,7 +41,7 @@ class Chat(
                 ChatCreatedEvent(
                     aggregateId = chatId,
                     name = null,
-                    type = "PRIVATE",
+                    type = ChatType.PRIVATE.toString(),
                     creatorId = creatorId,
                 )
             )
@@ -60,9 +49,6 @@ class Chat(
             return chat
         }
 
-        /**
-         * Factory method to create a new group chat.
-         */
         fun createGroup(
             name: String,
             description: String? = null,
@@ -72,14 +58,14 @@ class Chat(
             require(name.isNotBlank()) { "Chat name cannot be blank" }
             require(name.length <= 255) { "Chat name cannot exceed 255 characters" }
 
-            val now = LocalDateTime.now(BRASIL_ZONE)
+            val now = DateTimeUtils.now()
             val chatId = UUID.randomUUID().toString()
 
             val chat = Chat(
                 id = chatId,
                 name = name,
                 description = description,
-                type = ChatType.group(),
+                type = ChatType.GROUP,
                 creatorId = creatorId,
                 groupPhotoUrl = groupPhotoUrl,
                 isActive = true,
@@ -91,7 +77,7 @@ class Chat(
                 ChatCreatedEvent(
                     aggregateId = chatId,
                     name = name,
-                    type = "GROUP",
+                    type = ChatType.GROUP.toString(),
                     creatorId = creatorId,
                 )
             )
@@ -100,15 +86,12 @@ class Chat(
         }
     }
 
-    /**
-     * Update group chat info.
-     */
     fun updateGroupInfo(
         name: String? = null,
         description: String? = null,
         groupPhotoUrl: String? = null,
     ): Chat {
-        require(type.isGroup()) { "Can only update group chats" }
+        require(type == ChatType.GROUP) { "Can only update group chats" }
         if (name != null) {
             require(name.isNotBlank()) { "Chat name cannot be blank" }
             require(name.length <= 255) { "Chat name cannot exceed 255 characters" }
@@ -123,13 +106,10 @@ class Chat(
             groupPhotoUrl = groupPhotoUrl ?: this.groupPhotoUrl,
             isActive = this.isActive,
             createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(BRASIL_ZONE),
+            updatedAt = DateTimeUtils.now(),
         )
     }
 
-    /**
-     * Deactivate chat.
-     */
     fun deactivate(): Chat {
         return Chat(
             id = this.id,
@@ -140,7 +120,7 @@ class Chat(
             groupPhotoUrl = this.groupPhotoUrl,
             isActive = false,
             createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(BRASIL_ZONE),
+            updatedAt = DateTimeUtils.now(),
         )
     }
 
@@ -151,4 +131,5 @@ class Chat(
     }
 
     override fun hashCode(): Int = id.hashCode()
+
 }

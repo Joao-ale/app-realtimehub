@@ -3,10 +3,7 @@ package com.realtimehub.shared.utils
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-/**
- * Utility object for date and time operations.
- * Uses Brasilia timezone (America/Sao_Paulo - UTC-3).
- */
+
 object DateTimeUtils {
     private val BRASIL_ZONE = ZoneId.of("America/Sao_Paulo")
 

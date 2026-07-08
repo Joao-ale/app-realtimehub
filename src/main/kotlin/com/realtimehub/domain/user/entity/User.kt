@@ -2,26 +2,16 @@ package com.realtimehub.domain.user.entity
 
 import com.realtimehub.domain.user.event.UserCreatedEvent
 import com.realtimehub.domain.user.event.UserStatusChangedEvent
-import com.realtimehub.domain.user.valueobject.Email
-import com.realtimehub.domain.user.valueobject.Password
-import com.realtimehub.domain.user.valueobject.UserStatus
-import com.realtimehub.domain.user.valueobject.UserId
-import com.realtimehub.domain.user.valueobject.Username
 import com.realtimehub.shared.domain.AggregateRoot
+import com.realtimehub.shared.utils.DateTimeUtils
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.UUID
 
-/**
- * User aggregate root.
- * This is the main entity for the user domain with all business logic.
- * Uses LocalDateTime with Brasilia timezone (UTC-3).
- */
 class User(
     override val id: String,
-    val email: Email,
-    val username: Username,
-    val password: Password,
+    val email: String,
+    val username: String,
+    val password: String,
     val fullName: String?,
     val profilePhotoUrl: String?,
     val bio: String?,
@@ -33,22 +23,17 @@ class User(
 ) : AggregateRoot<String>(id) {
 
     companion object {
-        private val BRASIL_ZONE = ZoneId.of("America/Sao_Paulo")
 
-        /**
-         * Factory method to create a new user.
-         */
         fun create(
-            email: Email,
-            username: Username,
-            password: Password,
+            email: String,
+            username: String,
+            password: String,
             fullName: String? = null,
             profilePhotoUrl: String? = null,
             bio: String? = null,
         ): User {
-            val now = LocalDateTime.now(BRASIL_ZONE)
             val userId = UUID.randomUUID().toString()
-
+            val now = DateTimeUtils.now()
             val user = User(
                 id = userId,
                 email = email,
@@ -57,7 +42,7 @@ class User(
                 fullName = fullName,
                 profilePhotoUrl = profilePhotoUrl,
                 bio = bio,
-                status = UserStatus.offline(),
+                status = UserStatus.OFFLLINE,
                 lastSeen = now,
                 isActive = true,
                 createdAt = now,
@@ -67,8 +52,8 @@ class User(
             user.registerEvent(
                 UserCreatedEvent(
                     aggregateId = userId,
-                    email = email.value,
-                    username = username.value,
+                    email = email,
+                    username = username,
                     fullName = fullName,
                 )
             )
@@ -77,14 +62,12 @@ class User(
         }
     }
 
-    /**
-     * Change user status.
-     */
+
     fun changeStatus(newStatus: UserStatus): User {
         if (this.status == newStatus) {
             return this
         }
-
+        val now = DateTimeUtils.now()
         val updated = User(
             id = this.id,
             email = this.email,
@@ -94,31 +77,29 @@ class User(
             profilePhotoUrl = this.profilePhotoUrl,
             bio = this.bio,
             status = newStatus,
-            lastSeen = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")),
+            lastSeen = now,
             isActive = this.isActive,
             createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")),
+            updatedAt = now,
         )
 
         updated.registerEvent(
             UserStatusChangedEvent(
                 aggregateId = this.id,
-                previousStatus = this.status.value.name,
-                newStatus = newStatus.value.name,
+                previousStatus = this.status.toString(),
+                newStatus = newStatus.toString(),
             )
         )
 
         return updated
     }
 
-    /**
-     * Update user profile.
-     */
     fun updateProfile(
         fullName: String? = null,
         profilePhotoUrl: String? = null,
         bio: String? = null,
     ): User {
+        val now = DateTimeUtils.now()
         return User(
             id = this.id,
             email = this.email,
@@ -131,19 +112,13 @@ class User(
             lastSeen = this.lastSeen,
             isActive = this.isActive,
             createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")),
+            updatedAt = now,
         )
     }
 
-    /**
-     * Verify password.
-     */
-    fun verifyPassword(plainPassword: String): Boolean = password.matches(plainPassword)
 
-    /**
-     * Deactivate user.
-     */
     fun deactivate(): User {
+        val now = DateTimeUtils.now()
         return User(
             id = this.id,
             email = this.email,
@@ -152,11 +127,11 @@ class User(
             fullName = this.fullName,
             profilePhotoUrl = this.profilePhotoUrl,
             bio = this.bio,
-            status = UserStatus.offline(),
+            status = UserStatus.OFFLLINE,
             lastSeen = this.lastSeen,
             isActive = false,
             createdAt = this.createdAt,
-            updatedAt = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")),
+            updatedAt = now,
         )
     }
 

@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * REST Controller for Chat operations.
- */
 @RestController
 @RequestMapping("/chats")
 @Tag(name = "Chats", description = "Chat management endpoints")
@@ -28,24 +25,14 @@ class ChatController(
     private val chatApplicationService: ChatApplicationService,
 ) {
 
-    /**
-     * Create a new chat (group or private).
-     */
     @PostMapping
     @Operation(summary = "Create a new chat", description = "Create a new group or private chat")
     suspend fun createChat(
         @RequestBody request: ChatRequestDTO,
     ): ResponseEntity<Any> {
         val result = when (request.chatType.uppercase()) {
-            "GROUP" -> chatApplicationService.createGroupChat(
-                name = request.name ?: "",
-                description = request.description,
-                creatorId = "", // TODO: Get from authentication context
-                groupPhotoUrl = request.groupPhotoUrl,
-            )
-            "PRIVATE" -> chatApplicationService.createPrivateChat(
-                creatorId = "", // TODO: Get from authentication context
-            )
+            "GROUP" -> chatApplicationService.createGroupChat(request)
+            "PRIVATE" -> chatApplicationService.createPrivateChat(request)
             else -> Result.Failure(
                 com.realtimehub.shared.domain.DomainError.ValidationError(
                     message = "Invalid chat type: ${request.chatType}",
@@ -55,32 +42,26 @@ class ChatController(
 
         return when (result) {
             is Result.Success -> ResponseEntity.status(HttpStatus.CREATED)
-                .body(result.data.toResponseDTO())
+                .body(result.data)
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
     }
 
-    /**
-     * Get chat by ID.
-     */
+
     @GetMapping("/{chatId}")
     @Operation(summary = "Get chat by ID", description = "Retrieve chat information by chat ID")
     suspend fun getChatById(
         @PathVariable chatId: String,
     ): ResponseEntity<Any> {
         val result = chatApplicationService.getChatById(chatId)
-
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.toResponseDTO())
+            is Result.Success -> ResponseEntity.ok(result.data)
             is Result.Failure -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to result.error.message))
         }
     }
 
-    /**
-     * Get user chats.
-     */
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get user chats", description = "Get all chats for a specific user")
     suspend fun getUserChats(
@@ -89,47 +70,24 @@ class ChatController(
         val result = chatApplicationService.getUserChats(userId)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.map { it.toResponseDTO() })
+            is Result.Success -> ResponseEntity.ok(result.data)
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
     }
 
-    /**
-     * Update group chat.
-     */
     @PutMapping("/{chatId}")
     @Operation(summary = "Update chat", description = "Update group chat information")
     suspend fun updateChat(
         @PathVariable chatId: String,
         @RequestBody request: ChatUpdateDTO,
     ): ResponseEntity<Any> {
-        val result = chatApplicationService.updateGroupChat(
-            chatId = chatId,
-            name = request.name,
-            description = request.description,
-            groupPhotoUrl = request.groupPhotoUrl,
-        )
+        val result = chatApplicationService.updateGroupChat(request, chatId)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.toResponseDTO())
+            is Result.Success -> ResponseEntity.ok(result.data)
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
     }
-
-    /**
-     * Convert Chat entity to ChatResponseDTO.
-     */
-    private fun Chat.toResponseDTO() = ChatResponseDTO(
-        id = this.id,
-        name = this.name,
-        description = this.description,
-        chatType = this.type.value.name,
-        creatorId = this.creatorId,
-        groupPhotoUrl = this.groupPhotoUrl,
-        isActive = this.isActive,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt,
-    )
 }

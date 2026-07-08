@@ -1,27 +1,21 @@
 package com.realtimehub.application.service
 
 import com.realtimehub.domain.notification.entity.Notification
-import com.realtimehub.domain.notification.repository.NotificationRepository
-import com.realtimehub.domain.notification.valueobject.NotificationType
+import com.realtimehub.domain.notification.entity.NotificationType
+import com.realtimehub.domain.port.NotificationRepository
 import com.realtimehub.infrastructure.event.DomainEventPublisher
 import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/**
- * Application service for notification operations.
- * Orchestrates domain logic and coordinates with repositories.
- */
+
 @Service
 class NotificationApplicationService(
     private val notificationRepository: NotificationRepository,
     private val domainEventPublisher: DomainEventPublisher,
 ) {
 
-    /**
-     * Create and send a notification.
-     */
     @Transactional
     suspend fun createNotification(
         userId: String,
@@ -33,13 +27,13 @@ class NotificationApplicationService(
         relatedChatId: String? = null,
     ): Result<Notification> {
         return try {
-            val type = try {
-                NotificationType(
-                    value = NotificationType.Type.valueOf(notificationType.uppercase()),
-                )
-            } catch (e: Exception) {
-                NotificationType.systemMessage()
-            }
+            val type = when (notificationType.uppercase()) {
+                    "NEW_MESSAGE" -> NotificationType.NEW_MESSAGE
+                    "MENTION" -> NotificationType.MENTION
+                    "CHAT_INVITE" -> NotificationType.CHAT_INVITE
+                    "SYSTEM" -> NotificationType.SYSTEM
+                    else -> NotificationType.NEW_MESSAGE
+                }
 
             val notification = Notification.create(
                 userId = userId,
@@ -69,9 +63,6 @@ class NotificationApplicationService(
         }
     }
 
-    /**
-     * Get all notifications for a user.
-     */
     @Transactional(readOnly = true)
     suspend fun getUserNotifications(userId: String): Result<List<Notification>> {
         return try {
@@ -86,9 +77,7 @@ class NotificationApplicationService(
         }
     }
 
-    /**
-     * Get unread notifications for a user.
-     */
+
     @Transactional(readOnly = true)
     suspend fun getUnreadNotifications(userId: String): Result<List<Notification>> {
         return try {
@@ -103,9 +92,6 @@ class NotificationApplicationService(
         }
     }
 
-    /**
-     * Mark notification as read.
-     */
     @Transactional
     suspend fun markNotificationAsRead(notificationId: String): Result<Notification> {
         return try {

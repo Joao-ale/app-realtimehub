@@ -1,6 +1,6 @@
 package com.realtimehub.domain.event
 
-import java.time.Instant
+import java.time.LocalDateTime
 import java.util.UUID
 
 enum class RealtimeEventType {
@@ -22,8 +22,8 @@ enum class RealtimeEventType {
 }
 
 data class RealtimeEvent(
-    override val eventId: UUID = UUID.randomUUID(),
+    override val eventId: String = UUID.randomUUID().toString(),
     val type: RealtimeEventType,
     val payload: Map<String, Any?>,
-    override val occurredAt: Instant = Instant.now(),
+    override val occurredAt: LocalDateTime = LocalDateTime.now(),
 ) : DomainEvent

@@ -6,10 +6,6 @@ import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 
-/**
- * Domain Event Listener.
- * Listens to all domain events for logging and monitoring purposes.
- */
 @Component
 class DomainEventListener {
     private val logger = LoggerFactory.getLogger(javaClass)

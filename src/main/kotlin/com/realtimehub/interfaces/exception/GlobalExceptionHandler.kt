@@ -11,23 +11,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
-/**
- * Global exception handler for REST API.
- * Centralizes error handling and converts exceptions to API error responses.
- */
+
 @RestControllerAdvice
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
-    private val logger = LoggerFactory.getLogger(javaClass)
+    private val loggerFactory = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * Handle domain exceptions.
-     */
     @ExceptionHandler(DomainException::class)
     fun handleDomainException(
         ex: DomainException,
         request: WebRequest,
     ): ResponseEntity<ApiErrorResponse> {
-        logger.warn("Domain exception: code={}, message={}", ex.code, ex.message)
+        loggerFactory.warn("Domain exception: code={}, message={}", ex.code, ex.message)
         return ResponseEntity.badRequest().body(
             ApiErrorResponse(
                 status = HttpStatus.BAD_REQUEST.value(),
@@ -39,15 +33,13 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
         )
     }
 
-    /**
-     * Handle validation errors.
-     */
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationException(
         ex: MethodArgumentNotValidException,
         request: WebRequest,
     ): ResponseEntity<ApiErrorResponse> {
-        logger.warn("Validation error: {}", ex.message)
+        loggerFactory.warn("Validation error: ${ex}")
         val errors = ex.bindingResult.fieldErrors
             .associateBy({ it.field }, { it.defaultMessage ?: "Invalid value" })
 
@@ -63,15 +55,12 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
         )
     }
 
-    /**
-     * Handle illegal argument exceptions.
-     */
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(
         ex: IllegalArgumentException,
         request: WebRequest,
     ): ResponseEntity<ApiErrorResponse> {
-        logger.warn("Illegal argument: {}", ex.message)
+        loggerFactory.warn("Illegal argument: {}", ex)
         return ResponseEntity.badRequest().body(
             ApiErrorResponse(
                 status = HttpStatus.BAD_REQUEST.value(),
@@ -91,12 +80,29 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
         ex: Exception,
         request: WebRequest,
     ): ResponseEntity<ApiErrorResponse> {
-        logger.error("Unexpected error: {}", ex.message, ex)
+        loggerFactory.error("Unexpected error: {}", ex.message, ex)
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
             ApiErrorResponse(
                 status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 message = "An unexpected error occurred",
                 code = "INTERNAL_SERVER_ERROR",
+                path = request.getDescription(false).removePrefix("uri="),
+                timestamp = DateTimeUtils.now(),
+            ),
+        )
+    }
+
+    @ExceptionHandler(InvalidPasswordException::class)
+    fun handleInvalidPasswordException(
+        ex: IllegalArgumentException,
+        request: WebRequest,
+    ): ResponseEntity<ApiErrorResponse> {
+        loggerFactory.warn("Invalid password: {}", ex)
+        return ResponseEntity.badRequest().body(
+            ApiErrorResponse(
+                status = HttpStatus.BAD_REQUEST.value(),
+                message = ex.message ?: "Invalid password",
+                code = "INVALID_PASSWORD",
                 path = request.getDescription(false).removePrefix("uri="),
                 timestamp = DateTimeUtils.now(),
             ),

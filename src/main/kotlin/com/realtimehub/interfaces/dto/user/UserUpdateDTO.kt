@@ -19,4 +19,8 @@ data class UserUpdateDTO(
     @field:Schema(description = "User bio", nullable = true)
     @JsonProperty("bio")
     val bio: String? = null,
+
+    @field:Schema(description = "User password", nullable = false)
+    @JsonProperty("password")
+    val password: String
 )

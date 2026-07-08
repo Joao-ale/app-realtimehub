@@ -1,16 +1,12 @@
 package com.realtimehub.domain.notification.entity
 
-import com.realtimehub.domain.notification.valueobject.NotificationType
 import com.realtimehub.shared.domain.AggregateRoot
+import com.realtimehub.shared.utils.DateTimeUtils
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
 
-/**
- * Notification aggregate root.
- * Represents a notification sent to a user.
- * Uses LocalDateTime with Brasilia timezone (UTC-3).
- */
+
 class Notification(
     override val id: String,
     val userId: String,
@@ -53,7 +49,7 @@ class Notification(
                 relatedChatId = relatedChatId,
                 isRead = false,
                 readAt = null,
-                createdAt = LocalDateTime.now(BRASIL_ZONE),
+                createdAt = DateTimeUtils.now(),
             )
         }
     }
@@ -72,7 +68,7 @@ class Notification(
             relatedMessageId = this.relatedMessageId,
             relatedChatId = this.relatedChatId,
             isRead = true,
-            readAt = LocalDateTime.now(ZoneId.of("America/Sao_Paulo")),
+            readAt = DateTimeUtils.now(),
             createdAt = this.createdAt,
         )
     }

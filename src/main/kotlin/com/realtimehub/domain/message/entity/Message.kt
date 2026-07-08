@@ -3,17 +3,12 @@ package com.realtimehub.domain.message.entity
 import com.realtimehub.domain.message.event.MessageCreatedEvent
 import com.realtimehub.domain.message.event.MessageDeletedEvent
 import com.realtimehub.domain.message.event.MessageEditedEvent
-import com.realtimehub.domain.message.valueobject.MessageType
 import com.realtimehub.shared.domain.AggregateRoot
+import com.realtimehub.shared.utils.DateTimeUtils
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.UUID
 
-/**
- * Message aggregate root.
- * Represents a single message in a chat.
- * Uses LocalDateTime with Brasilia timezone (UTC-3).
- */
+
 class Message(
     override val id: String,
     val chatId: String,
@@ -30,22 +25,18 @@ class Message(
 ) : AggregateRoot<String>(id) {
 
     companion object {
-        private val BRASIL_ZONE = ZoneId.of("America/Sao_Paulo")
 
-        /**
-         * Factory method to create a new message.
-         */
         fun create(
             chatId: String,
             senderId: String,
             content: String,
-            type: MessageType = MessageType.text(),
+            type: MessageType = MessageType.TEXT,
             replyToId: String? = null,
         ): Message {
             require(content.isNotBlank()) { "Message content cannot be blank" }
             require(content.length <= 4000) { "Message content cannot exceed 4000 characters" }
 
-            val now = LocalDateTime.now(BRASIL_ZONE)
+            val now = DateTimeUtils.now()
             val messageId = UUID.randomUUID().toString()
 
             val message = Message(
@@ -69,7 +60,7 @@ class Message(
                     chatId = chatId,
                     senderId = senderId,
                     content = content,
-                    type = type.value.name,
+                    type = type.name,
                     replyToId = replyToId,
                 )
             )
@@ -78,16 +69,13 @@ class Message(
         }
     }
 
-    /**
-     * Edit message content.
-     */
     fun edit(newContent: String): Message {
         require(!isDeleted) { "Cannot edit a deleted message" }
         require(newContent.isNotBlank()) { "Message content cannot be blank" }
         require(newContent.length <= 4000) { "Message content cannot exceed 4000 characters" }
         require(newContent != content) { "New content must be different from current content" }
 
-        val now = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
+        val now = DateTimeUtils.now()
         val updated = Message(
             id = this.id,
             chatId = this.chatId,
@@ -116,13 +104,10 @@ class Message(
         return updated
     }
 
-    /**
-     * Soft delete message.
-     */
     fun delete(): Message {
         require(!isDeleted) { "Message is already deleted" }
 
-        val now = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
+        val now = DateTimeUtils.now()
         val updated = Message(
             id = this.id,
             chatId = this.chatId,

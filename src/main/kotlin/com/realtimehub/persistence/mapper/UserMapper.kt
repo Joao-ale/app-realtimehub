@@ -2,6 +2,7 @@ package com.realtimehub.persistence.mapper
 
 import com.realtimehub.domain.model.User
 import com.realtimehub.domain.model.UserStatus
+import com.realtimehub.domain.user.entity.UserStatus
 import com.realtimehub.dto.UserRequestDto
 import com.realtimehub.dto.UserResponseDto
 import com.realtimehub.persistence.entity.UserEntity
