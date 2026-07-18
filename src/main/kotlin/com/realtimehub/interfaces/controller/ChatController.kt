@@ -1,10 +1,9 @@
 package com.realtimehub.interfaces.controller
 
 import com.realtimehub.application.service.ChatApplicationService
-import com.realtimehub.domain.chat.entity.Chat
 import com.realtimehub.interfaces.dto.chat.ChatRequestDTO
-import com.realtimehub.interfaces.dto.chat.ChatResponseDTO
 import com.realtimehub.interfaces.dto.chat.ChatUpdateDTO
+import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -34,7 +33,7 @@ class ChatController(
             "GROUP" -> chatApplicationService.createGroupChat(request)
             "PRIVATE" -> chatApplicationService.createPrivateChat(request)
             else -> Result.Failure(
-                com.realtimehub.shared.domain.DomainError.ValidationError(
+                DomainError.ValidationError(
                     message = "Invalid chat type: ${request.chatType}",
                 ),
             )

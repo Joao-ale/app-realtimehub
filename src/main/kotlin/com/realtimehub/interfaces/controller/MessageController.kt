@@ -1,10 +1,10 @@
 package com.realtimehub.interfaces.controller
 
-import com.realtimehub.application.service.MessageApplicationService
 import com.realtimehub.domain.message.entity.Message
 import com.realtimehub.interfaces.dto.message.MessageEditDTO
 import com.realtimehub.interfaces.dto.message.MessageRequestDTO
 import com.realtimehub.interfaces.dto.message.MessageResponseDTO
+import com.realtimehub.application.service.
 import com.realtimehub.shared.domain.Result
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -20,14 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * REST Controller for Message operations.
- */
+
 @RestController
 @RequestMapping("/messages")
 @Tag(name = "Messages", description = "Message management endpoints")
 class MessageController(
-    private val messageApplicationService: MessageApplicationService,
+    private val messageApplicationService: MessgeApplicationService,
 ) {
 
     /**

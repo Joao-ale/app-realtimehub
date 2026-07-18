@@ -21,9 +21,6 @@ class NotificationController(
     private val notificationApplicationService: NotificationApplicationService,
 ) {
 
-    /**
-     * Get user notifications.
-     */
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get user notifications", description = "Get all notifications for a user")
     suspend fun getUserNotifications(
@@ -38,9 +35,6 @@ class NotificationController(
         }
     }
 
-    /**
-     * Get unread notifications.
-     */
     @GetMapping("/user/{userId}/unread")
     @Operation(summary = "Get unread notifications", description = "Get unread notifications for a user")
     suspend fun getUnreadNotifications(
@@ -55,9 +49,6 @@ class NotificationController(
         }
     }
 
-    /**
-     * Mark notification as read.
-     */
     @PutMapping("/{notificationId}/read")
     @Operation(summary = "Mark notification as read", description = "Mark a notification as read")
     suspend fun markNotificationAsRead(
@@ -72,15 +63,12 @@ class NotificationController(
         }
     }
 
-    /**
-     * Convert Notification entity to NotificationResponseDTO.
-     */
     private fun Notification.toResponseDTO() = NotificationResponseDTO(
         id = this.id,
         userId = this.userId,
         title = this.title,
         description = this.description,
-        notificationType = this.type.value.name,
+        notificationType = this.type.name,
         relatedUserId = this.relatedUserId,
         relatedMessageId = this.relatedMessageId,
         relatedChatId = this.relatedChatId,
