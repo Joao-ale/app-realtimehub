@@ -376,3 +376,65 @@ This project is licensed under the **MIT License**.
 ## ⭐ Support
 
 If you found this project useful, consider giving it a **star** on GitHub. It helps increase the project's visibility and supports its continued development.
+
+```mermaid
+flowchart TB
+
+    Client["👤 Client Applications
+    Web / Mobile / Desktop"]
+
+    subgraph Backend["RealtimeHub Backend"]
+        API["🌐 REST API
+        Spring Boot"]
+
+        WS["⚡ WebSocket Server
+        STOMP"]
+
+        AUTH["🔐 JWT Authentication"]
+
+        APP["📦 Application Layer
+        Use Cases"]
+
+        DOMAIN["🏛️ Domain Layer
+        Business Rules"]
+
+        DB["🗄️ MySQL"]
+
+        REDIS["⚡ Redis Cache"]
+
+        FLYWAY["🛠️ Flyway"]
+
+        API --> AUTH
+        API --> APP
+        WS --> APP
+        APP --> DOMAIN
+        DOMAIN --> DB
+        DOMAIN --> REDIS
+        DB --> FLYWAY
+    end
+
+    subgraph AWS["☁️ AWS Infrastructure"]
+
+        EC2["EC2"]
+
+        RDS["Amazon RDS
+        MySQL"]
+
+        ELASTIC["Redis
+        Docker"]
+
+        TF["Terraform"]
+
+        EC2 --> RDS
+        EC2 --> ELASTIC
+        TF --> EC2
+        TF --> RDS
+    end
+
+    Client --> API
+    Client --> WS
+
+    DB --> RDS
+    REDIS --> ELASTIC
+    API --> EC2
+```
