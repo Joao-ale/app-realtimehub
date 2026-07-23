@@ -1,10 +1,12 @@
 package com.realtimehub.domain.port
 
-import com.realtimehub.domain.model.Message
-import java.util.UUID
+import com.realtimehub.domain.message.entity.Message
 
 interface MessageRepository {
-    fun save(message: Message): Message
-    fun findById(id: UUID): Message?
-    fun findByChatId(chatId: UUID, pageRequest: PageRequest): PageResult<Message>
+    suspend fun save(message: Message): Message
+    suspend fun findById(id: String): Message?
+    suspend fun delete(id: String): Boolean
+    suspend fun findByChatId(chatId: String, limit: Int, offset: Int): List<Message>
+    suspend fun findBySenderId(senderId: String): List<Message>
+    suspend fun findByReplyToId(replyToId: String): List<Message>
 }

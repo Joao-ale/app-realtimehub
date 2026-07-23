@@ -21,9 +21,6 @@ class NotificationController(
     private val notificationApplicationService: NotificationApplicationService,
 ) {
 
-    /**
-     * Get user notifications.
-     */
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get user notifications", description = "Get all notifications for a user")
     suspend fun getUserNotifications(
@@ -32,15 +29,12 @@ class NotificationController(
         val result = notificationApplicationService.getUserNotifications(userId)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.map { it.toResponseDTO() })
+            is Result.Success -> ResponseEntity.ok(result.data.map { it })
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
     }
 
-    /**
-     * Get unread notifications.
-     */
     @GetMapping("/user/{userId}/unread")
     @Operation(summary = "Get unread notifications", description = "Get unread notifications for a user")
     suspend fun getUnreadNotifications(
@@ -49,15 +43,12 @@ class NotificationController(
         val result = notificationApplicationService.getUnreadNotifications(userId)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.map { it.toResponseDTO() })
+            is Result.Success -> ResponseEntity.ok(result.data.map { it })
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
     }
 
-    /**
-     * Mark notification as read.
-     */
     @PutMapping("/{notificationId}/read")
     @Operation(summary = "Mark notification as read", description = "Mark a notification as read")
     suspend fun markNotificationAsRead(
@@ -66,26 +57,9 @@ class NotificationController(
         val result = notificationApplicationService.markNotificationAsRead(notificationId)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.toResponseDTO())
+            is Result.Success -> ResponseEntity.ok(result.data)
             is Result.Failure -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to result.error.message))
         }
     }
-
-    /**
-     * Convert Notification entity to NotificationResponseDTO.
-     */
-    private fun Notification.toResponseDTO() = NotificationResponseDTO(
-        id = this.id,
-        userId = this.userId,
-        title = this.title,
-        description = this.description,
-        notificationType = this.type.value.name,
-        relatedUserId = this.relatedUserId,
-        relatedMessageId = this.relatedMessageId,
-        relatedChatId = this.relatedChatId,
-        isRead = this.isRead,
-        readAt = this.readAt,
-        createdAt = this.createdAt,
-    )
 }

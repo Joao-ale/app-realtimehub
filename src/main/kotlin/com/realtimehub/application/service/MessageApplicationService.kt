@@ -1,9 +1,11 @@
 package com.realtimehub.application.service
 
 import com.realtimehub.domain.message.entity.Message
+import com.realtimehub.domain.message.entity.MessageMapper
 import com.realtimehub.domain.message.entity.MessageType
 import com.realtimehub.domain.port.MessageRepository
 import com.realtimehub.infrastructure.event.DomainEventPublisher
+import com.realtimehub.interfaces.dto.message.MessageResponseDTO
 import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
 import org.springframework.stereotype.Service
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class MessageApplicationService(
     private val messageRepository: MessageRepository,
     private val domainEventPublisher: DomainEventPublisher,
+    private val messageMapper: MessageMapper
 ) {
 
     @Transactional
@@ -22,7 +25,7 @@ class MessageApplicationService(
         content: String,
         messageType: String = "TEXT",
         replyToId: String? = null,
-    ): Result<Message> {
+    ): Result<MessageResponseDTO> {
         return try {
             val type = try {
                 when (messageType.uppercase()) {
@@ -35,7 +38,7 @@ class MessageApplicationService(
                     else -> MessageType.TEXT
                 }
             } catch (e: Exception) {
-                MessageType.text()
+                MessageType.TEXT
             }
 
             val message = Message.create(
@@ -50,7 +53,7 @@ class MessageApplicationService(
             domainEventPublisher.publishAll(savedMessage.getDomainEvents())
             savedMessage.clearDomainEvents()
 
-            Result.Success(savedMessage)
+            Result.Success(messageMapper.toResponseDTO(savedMessage))
         } catch (e: IllegalArgumentException) {
             Result.Failure(
                 DomainError.ValidationError(
@@ -70,7 +73,7 @@ class MessageApplicationService(
      * Get message by ID.
      */
     @Transactional(readOnly = true)
-    suspend fun getMessageById(messageId: String): Result<Message> {
+    suspend fun getMessageById(messageId: String): Result<MessageResponseDTO> {
         return try {
             val message = messageRepository.findById(messageId)
                 ?: return Result.Failure(
@@ -78,7 +81,7 @@ class MessageApplicationService(
                         message = "Message not found: $messageId",
                     ),
                 )
-            Result.Success(message)
+            Result.Success(messageMapper.toResponseDTO(message))
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(
@@ -92,10 +95,13 @@ class MessageApplicationService(
      * Get chat messages with pagination.
      */
     @Transactional(readOnly = true)
-    suspend fun getChatMessages(chatId: String, limit: Int = 50, offset: Int = 0): Result<List<Message>> {
+    suspend fun getChatMessages(chatId: String, limit: Int = 50, offset: Int = 0): Result<List<MessageResponseDTO>> {
         return try {
             val messages = messageRepository.findByChatId(chatId, limit, offset)
-            Result.Success(messages)
+            val messagesDto = messages.map { message ->
+                messageMapper.toResponseDTO(message)
+            }
+            Result.Success(messagesDto)
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(
@@ -109,7 +115,7 @@ class MessageApplicationService(
      * Edit a message.
      */
     @Transactional
-    suspend fun editMessage(messageId: String, newContent: String): Result<Message> {
+    suspend fun editMessage(messageId: String, newContent: String): Result<MessageResponseDTO> {
         return try {
             val message = messageRepository.findById(messageId)
                 ?: return Result.Failure(
@@ -123,7 +129,7 @@ class MessageApplicationService(
             domainEventPublisher.publishAll(savedMessage.getDomainEvents())
             savedMessage.clearDomainEvents()
 
-            Result.Success(savedMessage)
+            Result.Success(messageMapper.toResponseDTO(savedMessage))
         } catch (e: IllegalArgumentException) {
             Result.Failure(
                 DomainError.ValidationError(
@@ -143,7 +149,7 @@ class MessageApplicationService(
      * Delete a message.
      */
     @Transactional
-    suspend fun deleteMessage(messageId: String): Result<Message> {
+    suspend fun deleteMessage(messageId: String): Result<MessageResponseDTO> {
         return try {
             val message = messageRepository.findById(messageId)
                 ?: return Result.Failure(
@@ -157,7 +163,7 @@ class MessageApplicationService(
             domainEventPublisher.publishAll(savedMessage.getDomainEvents())
             savedMessage.clearDomainEvents()
 
-            Result.Success(savedMessage)
+            Result.Success(messageMapper.toResponseDTO(savedMessage))
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(

@@ -1,10 +1,8 @@
 package com.realtimehub.interfaces.controller
 
 import com.realtimehub.application.service.MessageApplicationService
-import com.realtimehub.domain.message.entity.Message
 import com.realtimehub.interfaces.dto.message.MessageEditDTO
 import com.realtimehub.interfaces.dto.message.MessageRequestDTO
-import com.realtimehub.interfaces.dto.message.MessageResponseDTO
 import com.realtimehub.shared.domain.Result
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -20,14 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-/**
- * REST Controller for Message operations.
- */
+
 @RestController
 @RequestMapping("/messages")
 @Tag(name = "Messages", description = "Message management endpoints")
 class MessageController(
-    private val messageApplicationService: MessageApplicationService,
+    private val messageApplicationService: MessageApplicationService
 ) {
 
     /**
@@ -41,7 +37,7 @@ class MessageController(
     ): ResponseEntity<Any> {
         val result = messageApplicationService.sendMessage(
             chatId = chatId,
-            senderId = "", // TODO: Get from authentication context
+            senderId = "",
             content = request.content,
             messageType = request.messageType,
             replyToId = request.replyToId,
@@ -49,7 +45,7 @@ class MessageController(
 
         return when (result) {
             is Result.Success -> ResponseEntity.status(HttpStatus.CREATED)
-                .body(result.data.toResponseDTO())
+                .body(result.data)
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
@@ -66,7 +62,7 @@ class MessageController(
         val result = messageApplicationService.getMessageById(messageId)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.toResponseDTO())
+            is Result.Success -> ResponseEntity.ok(result.data)
             is Result.Failure -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(mapOf("error" to result.error.message))
         }
@@ -85,7 +81,7 @@ class MessageController(
         val result = messageApplicationService.getChatMessages(chatId, limit, offset)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.map { it.toResponseDTO() })
+            is Result.Success -> ResponseEntity.ok(result.data.map { it })
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
@@ -103,7 +99,7 @@ class MessageController(
         val result = messageApplicationService.editMessage(messageId, request.content)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.toResponseDTO())
+            is Result.Success -> ResponseEntity.ok(result.data)
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
@@ -120,27 +116,9 @@ class MessageController(
         val result = messageApplicationService.deleteMessage(messageId)
 
         return when (result) {
-            is Result.Success -> ResponseEntity.ok(result.data.toResponseDTO())
+            is Result.Success -> ResponseEntity.ok(result.data)
             is Result.Failure -> ResponseEntity.badRequest()
                 .body(mapOf("error" to result.error.message))
         }
     }
-
-    /**
-     * Convert Message entity to MessageResponseDTO.
-     */
-    private fun Message.toResponseDTO() = MessageResponseDTO(
-        id = this.id,
-        chatId = this.chatId,
-        senderId = this.senderId,
-        content = this.content,
-        messageType = this.type.value.name,
-        isEdited = this.isEdited,
-        editedAt = this.editedAt,
-        isDeleted = this.isDeleted,
-        deletedAt = this.deletedAt,
-        replyToId = this.replyToId,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt,
-    )
 }

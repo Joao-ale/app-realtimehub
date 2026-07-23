@@ -1,9 +1,11 @@
 package com.realtimehub.application.service
 
 import com.realtimehub.domain.notification.entity.Notification
+import com.realtimehub.domain.notification.entity.NotificationMapper
 import com.realtimehub.domain.notification.entity.NotificationType
 import com.realtimehub.domain.port.NotificationRepository
 import com.realtimehub.infrastructure.event.DomainEventPublisher
+import com.realtimehub.interfaces.dto.notification.NotificationResponseDTO
 import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
 import org.springframework.stereotype.Service
@@ -13,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class NotificationApplicationService(
     private val notificationRepository: NotificationRepository,
-    private val domainEventPublisher: DomainEventPublisher,
+    private val notificationMapper: NotificationMapper
 ) {
 
     @Transactional
@@ -25,7 +27,7 @@ class NotificationApplicationService(
         relatedUserId: String? = null,
         relatedMessageId: String? = null,
         relatedChatId: String? = null,
-    ): Result<Notification> {
+    ): Result<NotificationResponseDTO> {
         return try {
             val type = when (notificationType.uppercase()) {
                     "NEW_MESSAGE" -> NotificationType.NEW_MESSAGE
@@ -47,7 +49,7 @@ class NotificationApplicationService(
 
             val savedNotification = notificationRepository.save(notification)
 
-            Result.Success(savedNotification)
+            Result.Success(notificationMapper.toResponseDTO(savedNotification))
         } catch (e: IllegalArgumentException) {
             Result.Failure(
                 DomainError.ValidationError(
@@ -64,10 +66,13 @@ class NotificationApplicationService(
     }
 
     @Transactional(readOnly = true)
-    suspend fun getUserNotifications(userId: String): Result<List<Notification>> {
+    suspend fun getUserNotifications(userId: String): Result<List<NotificationResponseDTO>> {
         return try {
             val notifications = notificationRepository.findByUserId(userId)
-            Result.Success(notifications)
+            val notificationsDto = notifications.map {notification ->
+                notificationMapper.toResponseDTO(notification)
+            }
+            Result.Success(notificationsDto)
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(
@@ -79,10 +84,13 @@ class NotificationApplicationService(
 
 
     @Transactional(readOnly = true)
-    suspend fun getUnreadNotifications(userId: String): Result<List<Notification>> {
+    suspend fun getUnreadNotifications(userId: String): Result<List<NotificationResponseDTO>> {
         return try {
             val notifications = notificationRepository.findUnreadByUserId(userId)
-            Result.Success(notifications)
+            val notificationsDto = notifications.map { notification ->
+                notificationMapper.toResponseDTO(notification)
+            }
+            Result.Success(notificationsDto)
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(
@@ -93,7 +101,7 @@ class NotificationApplicationService(
     }
 
     @Transactional
-    suspend fun markNotificationAsRead(notificationId: String): Result<Notification> {
+    suspend fun markNotificationAsRead(notificationId: String): Result<NotificationResponseDTO> {
         return try {
             val notification = notificationRepository.findById(notificationId)
                 ?: return Result.Failure(
@@ -105,7 +113,7 @@ class NotificationApplicationService(
             val readNotification = notification.markAsRead()
             val savedNotification = notificationRepository.save(readNotification)
 
-            Result.Success(savedNotification)
+            Result.Success(notificationMapper.toResponseDTO(savedNotification))
         } catch (e: Exception) {
             Result.Failure(
                 DomainError.BusinessRuleError(

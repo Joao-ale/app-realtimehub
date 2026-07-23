@@ -1,6 +1,6 @@
 package com.realtimehub.domain.port
 
-import com.realtimehub.domain.model.Participant
+import com.realtimehub.domain.chat.entity.Participant
 import java.util.UUID
 
 interface ParticipantRepository {

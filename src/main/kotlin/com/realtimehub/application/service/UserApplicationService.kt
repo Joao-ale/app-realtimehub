@@ -7,6 +7,7 @@ import com.realtimehub.infrastructure.event.DomainEventPublisher
 import com.realtimehub.interfaces.dto.user.UserRequestDTO
 import com.realtimehub.interfaces.dto.user.UserResponseDTO
 import com.realtimehub.interfaces.dto.user.UserUpdateDTO
+import com.realtimehub.interfaces.exception.UserException
 import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
 import com.realtimehub.shared.utils.PasswordUtils.generatePasswordHash
@@ -27,8 +28,8 @@ class UserApplicationService(
         request: UserRequestDTO
     ): Result<UserResponseDTO> {
         return try {
-            val email = request.email ?: throw IllegalArgumentException("Email is required")
-            val username = request.username ?: throw IllegalArgumentException("Username is required")
+            val email = request.email
+            val username = request.username
             val password = request.password ?: throw IllegalArgumentException("Password is required")
             val fullName = request.fullName ?: throw IllegalArgumentException("Full name is required")
             val profilePhotoUrl = request.profilePhotoUrl
@@ -134,7 +135,7 @@ class UserApplicationService(
         userId: String
     ): Result<UserResponseDTO> {
         return try {
-            val user = userRepository.findById(userId)
+            val user = userRepository.findById(userId) ?: throw UserException("Client not foud")
             val fullName = request.fullName ?: user.fullName
             val profilePhotoUrl = request.profilePhotoUrl ?: user.profilePhotoUrl
             val bio = request.bio ?: user.bio

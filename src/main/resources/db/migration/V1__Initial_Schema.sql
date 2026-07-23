@@ -1,10 +1,9 @@
-
 -- Set timezone
 SET TIME ZONE 'UTC';
 
 -- Users table
 CREATE TABLE users (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     username VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
@@ -26,7 +25,7 @@ CREATE INDEX idx_users_status ON users(status);
 
 -- Chats table (supports both 1-1 and group chats)
 CREATE TABLE chats (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255),
     description TEXT,
     chat_type VARCHAR(20) NOT NULL CHECK (chat_type IN ('PRIVATE', 'GROUP')),
@@ -42,7 +41,7 @@ CREATE INDEX idx_chats_type ON chats(chat_type);
 
 -- Participants table (join table for users and chats)
 CREATE TABLE participants (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     chat_id VARCHAR(255) NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role VARCHAR(20) NOT NULL DEFAULT 'MEMBER' CHECK (role IN ('OWNER', 'ADMIN', 'MEMBER')),
@@ -59,7 +58,7 @@ CREATE INDEX idx_participants_chat_id ON participants(chat_id);
 
 -- Messages table
 CREATE TABLE messages (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     chat_id VARCHAR(255) NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
     sender_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content TEXT,
@@ -80,7 +79,7 @@ CREATE INDEX idx_messages_reply_to ON messages(reply_to_id);
 
 -- Message attachments table
 CREATE TABLE message_attachments (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     message_id VARCHAR(255) NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
     file_url VARCHAR(1024) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
@@ -93,7 +92,7 @@ CREATE INDEX idx_attachments_message_id ON message_attachments(message_id);
 
 -- Message reactions table
 CREATE TABLE message_reactions (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     message_id VARCHAR(255) NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
     user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     emoji VARCHAR(10) NOT NULL,
@@ -105,7 +104,7 @@ CREATE INDEX idx_reactions_message_id ON message_reactions(message_id);
 
 -- Notifications table
 CREATE TABLE notifications (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
@@ -124,7 +123,7 @@ CREATE INDEX idx_notifications_created_at ON notifications(created_at);
 
 -- WebSocket sessions table (for tracking active connections)
 CREATE TABLE websocket_sessions (
-    id VARCHAR(255) PRIMARY KEY DEFAULT VARCHAR(255_generate_v4(),
+    id VARCHAR(255) PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     session_id VARCHAR(255) UNIQUE NOT NULL,
     device_type VARCHAR(50),

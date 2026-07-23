@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.bundling.BootJar
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -13,7 +14,7 @@ version = System.getenv("IMAGE_TAG") ?: "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -41,11 +42,12 @@ dependencies {
     implementation(libs.postgresql)
 
     implementation(libs.flyway.core)
-    implementation(libs.flyway.postgresql)
+    implementation(libs.flyway.mysql)
 
     implementation(libs.jjwt.api)
     runtimeOnly(libs.jjwt.impl)
     runtimeOnly(libs.jjwt.jackson)
+    runtimeOnly(libs.mysql.connector)
 
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.spring.security.test)
@@ -59,9 +61,11 @@ dependencies {
     testImplementation(libs.springmockk)
 }
 
+
 tasks.withType<KotlinCompile> {
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

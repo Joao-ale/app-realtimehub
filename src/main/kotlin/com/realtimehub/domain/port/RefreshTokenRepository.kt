@@ -1,6 +1,6 @@
 package com.realtimehub.domain.port
 
-import com.realtimehub.domain.model.RefreshToken
+import com.realtimehub.domain.user.entity.RefreshToken
 import java.util.UUID
 
 interface RefreshTokenRepository {

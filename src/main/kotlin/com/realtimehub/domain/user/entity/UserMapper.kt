@@ -1,7 +1,5 @@
 package com.realtimehub.domain.user.entity
 
-import com.realtimehub.domain.chat.entity.Chat
-import com.realtimehub.interfaces.dto.chat.ChatResponseDTO
 import com.realtimehub.interfaces.dto.user.UserResponseDTO
 
 object UserMapper {

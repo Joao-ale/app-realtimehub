@@ -6,6 +6,7 @@ import com.realtimehub.domain.port.ChatRepository
 import com.realtimehub.infrastructure.event.DomainEventPublisher
 import com.realtimehub.interfaces.dto.chat.ChatRequestDTO
 import com.realtimehub.interfaces.dto.chat.ChatResponseDTO
+import com.realtimehub.interfaces.dto.chat.ChatUpdateDTO
 import com.realtimehub.shared.domain.DomainError
 import com.realtimehub.shared.domain.Result
 import com.realtimehub.shared.utils.IdUtils.generateId
@@ -105,11 +106,9 @@ class ChatApplicationService(
 
     @Transactional
     suspend fun updateGroupChat(
-        chatId: String,
-        name: String? = null,
-        description: String? = null,
-        groupPhotoUrl: String? = null,
-    ): Result<ChatResponseDTO> {
+         request: ChatUpdateDTO,
+         chatId: String
+        ): Result<ChatResponseDTO> {
         return try {
             val chat = chatRepository.findById(chatId)
                 ?: return Result.Failure(
@@ -119,9 +118,9 @@ class ChatApplicationService(
                 )
 
             val updatedChat = chat.updateGroupInfo(
-                name = name,
-                description = description,
-                groupPhotoUrl = groupPhotoUrl,
+                name = request.name,
+                description = request.description,
+                groupPhotoUrl = request.groupPhotoUrl,
             )
 
             val savedChat = chatRepository.save(updatedChat)
